@@ -27,6 +27,30 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { CustomPass } from './CustomPass';
 
+import { RGBShiftShader } from 'three/examples/jsm/shaders/RGBShiftShader.js';
+import { DotScreenShader } from 'three/examples/jsm/shaders/DotScreenShader.js';
+import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
+
+// import { getProject, types as t } from '@theatre/core'
+// import studio from '@theatre/studio'
+
+// studio.initialize();
+// const project = getProject('THREE.js x Theatre.js');
+// const sheet = project.sheet('Scene');
+
+// const distortion = sheet.object('Distortion', {
+//   // Note that the rotation is in radians
+//   // (full rotation: 2 * Math.PI)
+//   // rotation: types.compound({
+//   //   x: types.number(mesh.rotation.x, { range: [-2, 2] }),
+//   //   y: types.number(mesh.rotation.y, { range: [-2, 2] }),
+//   //   z: types.number(mesh.rotation.z, { range: [-2, 2] }),
+//   // }),
+//   progress: t.number(0,{range:[0,1]}),
+//   bar: true,
+//   baz: 'A string'
+// });
+
 import vertexShader from "./shader/vertex.glsl";
 import fragmentShader from "./shader/fragment.glsl";
 import GUI from "lil-gui";
@@ -128,17 +152,14 @@ export default class webGL {
       this.cameraParam.far
     );
 
-    // this.camera1 = new OrthographicCamera (
-    //   this.renderParam.height * this.cameraParam.aspect / - 2,
-    //   this.renderParam.height * this.cameraParam.aspect / 2,
-    //   this.renderParam.height / 2,
-    //   this.renderParam.height / - 2,
-    //   -1000,
-    //   1000
-    // );
-    // this.camera = new OrthographicCamera (
-    //   -1, 1, 1, -1, 0.01, 10
-    // );
+    this.camera1 = new OrthographicCamera (
+      this.renderParam.height * this.cameraParam.aspect / - 2,
+      this.renderParam.height * this.cameraParam.aspect / 2,
+      this.renderParam.height / 2,
+      this.renderParam.height / - 2,
+      -1000,
+      1000
+    );
 
     this.camera.position.set(
       this.cameraParam.x,
@@ -179,6 +200,8 @@ export default class webGL {
         uTime: { value: 0 },
         uResolution: { value: new Vector4(0,0,0,0) },
         uTexture: { value: this.textures[0] },
+        uNoiseFreq: { value: 3.5 },
+        uNoiseAmp: { value: 0.15 },
       },
       vertexShader,
       fragmentShader,
@@ -234,15 +257,15 @@ export default class webGL {
   }
 
   _render() {
-    // this.renderer.render(this.scene, this.camera);
+    this.renderer.render(this.scene, this.camera);
     // this.renderer.render(this.scene1, this.camera1);
 
-    this.renderer.setRenderTarget(this.baseTexture);
-    this.renderer.render(this.scene, this.camera);
-    this.material.uniforms.uDisplacement.value = this.baseTexture.texture;
-    this.renderer.setRenderTarget(null);
-    this.renderer.clear();
-    this.renderer.render(this.scene1, this.camera);
+    // this.renderer.setRenderTarget(this.baseTexture);
+    // this.renderer.render(this.scene, this.camera);
+    // // this.material.uniforms.uDisplacement.value = this.baseTexture.texture;
+    // this.renderer.setRenderTarget(null);
+    // this.renderer.clear();
+    // this.renderer.render(this.scene1, this.camera1);
 
   }
 
@@ -304,9 +327,9 @@ export default class webGL {
     this.camera.updateProjectionMatrix();
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(windowWidth, windowHeight);
-    // this.cameraParam.fovRad = (this.cameraParam.fov / 2) * (Math.PI / 180);
-    // this.cameraParam.dist = windowHeight / 2 / Math.tan(this.cameraParam.fovRad);
-    // this.camera.position.z = this.cameraParam.dist;
+    this.cameraParam.fovRad = (this.cameraParam.fov / 2) * (Math.PI / 180);
+    this.cameraParam.dist = windowHeight / 2 / Math.tan(this.cameraParam.fovRad);
+    this.camera.position.z = this.cameraParam.dist;
     this._render();
     this.composer.render();
   }
